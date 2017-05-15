@@ -13,22 +13,28 @@ import org.jgrapht.Graphs;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.WeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
+import org.jgrapht.graph.DirectedWeightedMultigraph;
 import org.jgrapht.graph.SimpleGraph;
 import org.jgrapht.graph.SimpleWeightedGraph;
+import org.jgrapht.graph.WeightedMultigraph;
 import org.jgrapht.alg.DijkstraShortestPath;
 
 import it.polito.tdp.metrodeparis.dao.MetroDAO;
 
 public class Model {
 	MetroDAO md = new MetroDAO();
-	WeightedGraph<Fermata, DefaultWeightedEdge> graph = new SimpleWeightedGraph<Fermata, DefaultWeightedEdge>(DefaultWeightedEdge.class) ;
+	DirectedWeightedMultigraph<Fermata, DefaultWeightedEdge> graph = new DirectedWeightedMultigraph<Fermata, DefaultWeightedEdge> (DefaultWeightedEdge.class);
+	//WeightedGraph<Fermata, DefaultWeightedEdge> graph = new SimpleWeightedGraph<Fermata, DefaultWeightedEdge>(DefaultWeightedEdge.class) ;
 	List<Tratta> tratte ;
 	Map<Integer,Fermata> f = md.getAllFermate();
 	public List<Fermata> getFermate(){
 		List<Fermata> fermate = new LinkedList<Fermata>(f.values());
 		return fermate;
 	}
-	
+	/**
+	 * 
+	 * @return
+	 */
 	public String createGraph(){
 		Graphs.addAllVertices(graph, getFermate());
 		tratte = new LinkedList<Tratta>(md.getTratte().values());
@@ -47,15 +53,18 @@ public class Model {
 		this.createGraph();
 		DijkstraShortestPath<Fermata, DefaultWeightedEdge> path = new DijkstraShortestPath<Fermata, DefaultWeightedEdge>(graph,partenza,arrivo);
 		System.out.println(path.getPath().toString());
+		String risultato = "Percorso da: " + partenza + " a: "+ arrivo+"\n";
 		double tempo=0;
 		for(DefaultWeightedEdge dwe: path.getPathEdgeList()){
 			if(dwe!=null){
-				tempo+=md.getTratte().get(dwe).getTempo()+0.5;
+				tempo+=graph.getEdgeWeight(dwe)+0.5;
+				risultato+=dwe.toString()+"\n";
 				
 			}
 		}
-		System.out.println("TEMPO TOTALE: "+ tempo);
-		return null;
+		risultato += "TEMPO TOTALE: "+ tempo +" minuti";
+		
+		return risultato;
 	
 		
 	}
